@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>危機管理対応状況（安否確認）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#2b2a28; --ink-soft:#6f6a62; --line:#e7e2d9; --paper:#f4f1ec; --card:#fff;
+  --red:#d0574f; --red-d:#b8433c; --red-bg:#f7ddd8; --red-ink:#8f322c;
+  --ok:#2e9384; --ok-bg:#d9efe9; --warn:#c99a1f;
+  --shadow:0 2px 4px rgba(0,0,0,.08),0 10px 26px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",YuGothic,"Noto Sans JP",sans-serif;
+  color:var(--ink);background:var(--paper);line-height:1.6;-webkit-font-smoothing:antialiased;}
+.round{font-family:"M PLUS Rounded 1c",sans-serif;}
+.wrap{max-width:460px;margin:0 auto;min-height:100vh;background:var(--paper);}
+
+.hd{background:var(--red);color:#fff;padding:20px 18px 18px;}
+.hd .k{font-size:12px;font-weight:800;letter-spacing:.08em;opacity:.9;}
+.hd .t{font-size:21px;font-weight:800;margin-top:3px;}
+.hd .badge{display:inline-block;margin-top:10px;font-size:12px;font-weight:800;padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.22);}
+.hd .badge.drill{background:#fff;color:var(--red);}
+
+.body{padding:16px;}
+.msg{background:var(--card);border-radius:14px;padding:14px 15px;box-shadow:var(--shadow);font-size:14px;white-space:pre-wrap;margin-bottom:16px;}
+
+.step{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:15px;margin-bottom:14px;}
+.step .lbl{display:flex;align-items:center;gap:9px;font-weight:800;font-size:15px;margin-bottom:12px;}
+.no{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:800;}
+.opt{display:flex;gap:10px;}
+.opt.col{flex-direction:column;}
+.pick{flex:1;border:2px solid var(--line);background:#fff;border-radius:12px;padding:14px 10px;font-size:15px;font-weight:800;
+  color:var(--ink);cursor:pointer;font-family:inherit;transition:.12s;}
+.pick:active{transform:scale(.97)}
+.pick.sel{border-color:var(--red);background:var(--red-bg);color:var(--red-ink);}
+.pick.sel.safe{border-color:var(--ok);background:var(--ok-bg);color:#1b5c53;}
+.sub{font-size:11.5px;color:var(--ink-soft);margin-top:8px;}
+
+.name-sel{width:100%;font-size:16px;padding:12px;border:2px solid var(--line);border-radius:12px;font-family:inherit;background:#fff;color:var(--ink);}
+textarea{width:100%;font-size:15px;padding:12px;border:2px solid var(--line);border-radius:12px;font-family:inherit;min-height:80px;color:var(--ink);resize:vertical;}
+
+.gps{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.gps .desc{font-size:13px;}
+.toggle{position:relative;width:52px;height:30px;flex:0 0 auto;background:var(--line);border-radius:999px;cursor:pointer;transition:.15s;}
+.toggle.on{background:var(--red);}
+.toggle span{position:absolute;top:3px;left:3px;width:24px;height:24px;background:#fff;border-radius:50%;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.toggle.on span{left:25px;}
+.gps-state{font-size:12px;color:var(--ink-soft);margin-top:8px;}
+
+.submit{width:100%;background:var(--red);color:#fff;border:0;border-radius:14px;padding:17px;font-size:17px;font-weight:800;
+  font-family:inherit;cursor:pointer;box-shadow:var(--shadow);margin-top:4px;}
+.submit:active{transform:scale(.99)}
+.submit:disabled{opacity:.5;}
+
+.note{text-align:center;font-size:12px;color:var(--ink-soft);padding:14px;}
+.center{text-align:center;padding:40px 20px;}
+.big-ic{width:74px;height:74px;border-radius:50%;background:var(--ok-bg);display:grid;place-items:center;margin:0 auto 16px;}
+.big-ic svg{width:40px;height:40px;stroke:var(--ok);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;}
+.err{background:#fff;border-radius:14px;padding:22px;box-shadow:var(--shadow);text-align:center;color:var(--red-ink);font-weight:700;}
+.hide{display:none!important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd">
+    <div class="k round">危機管理対応状況</div>
+    <div class="t round" id="evTitle">安否確認</div>
+    <span class="badge" id="evBadge">読み込み中…</span>
+  </div>
+
+  <div class="body">
+    <!-- 読み込み中/エラー -->
+    <div id="loading" class="note">読み込んでいます…</div>
+    <div id="errBox" class="err hide"></div>
+
+    <!-- 入力フォーム -->
+    <div id="form" class="hide">
+      <div class="msg" id="evMsg"></div>
+
+      <div class="step">
+        <div class="lbl"><span class="no">1</span>お名前</div>
+        <select class="name-sel" id="name"><option value="">選択してください</option></select>
+      </div>
+
+      <div class="step">
+        <div class="lbl"><span class="no">2</span>あなたの状況</div>
+        <div class="opt">
+          <button class="pick" data-g="status" data-v="無事" onclick="pick(this)">無事です</button>
+          <button class="pick" data-g="status" data-v="要支援" onclick="pick(this)">支援が必要</button>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="lbl"><span class="no">3</span>出勤について</div>
+        <div class="opt col">
+          <button class="pick" data-g="canWork" data-v="出勤可" onclick="pick(this)">出勤できる</button>
+          <button class="pick" data-g="canWork" data-v="出勤不可" onclick="pick(this)">出勤できない</button>
+          <button class="pick" data-g="canWork" data-v="未定" onclick="pick(this)">わからない</button>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="lbl"><span class="no">4</span>現在地（任意）</div>
+        <div class="gps">
+          <div class="desc">今いる場所を園長に知らせる</div>
+          <div class="toggle" id="gpsToggle" onclick="toggleGps()"><span></span></div>
+        </div>
+        <div class="gps-state" id="gpsState"></div>
+      </div>
+
+      <div class="step">
+        <div class="lbl"><span class="no">5</span>ひとこと（任意）</div>
+        <textarea id="comment" placeholder="連絡事項があれば入力"></textarea>
+      </div>
+
+      <button class="submit" id="submitBtn" onclick="submit()">この内容で送信する</button>
+      <div class="note">送信後も、同じリンクから何度でも更新できます。</div>
+    </div>
+
+    <!-- 完了 -->
+    <div id="done" class="hide center">
+      <div class="big-ic"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg></div>
+      <div class="round" style="font-size:20px;font-weight:800">送信しました</div>
+      <div style="color:var(--ink-soft);margin-top:8px;font-size:14px">ご協力ありがとうございます。<br>内容を変えたいときは下のボタンから修正できます。</div>
+      <button class="submit" style="margin-top:22px;background:#fff;color:var(--red);border:2px solid var(--red)" onclick="editAgain()">回答を修正する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== 設定：GASウェブアプリの /exec URL を貼る ===== */
+const GAS_URL = 'ここにGASウェブアプリの/execのURLを貼る';
+/* ================================================= */
+
+const sel = {status:'', canWork:''};
+let gps = {on:false, lat:'', lng:''};
+let EVENT_ID = new URLSearchParams(location.search).get('event') || '';
+let FACILITY = '';
+
+/* JSONP */
+function jsonp(params){
+  return new Promise(function(resolve, reject){
+    const cb = 'cb_' + Math.random().toString(36).slice(2);
+    const s = document.createElement('script');
+    let done = false;
+    const t = setTimeout(function(){ if(!done){ cleanup(); reject(new Error('timeout')); } }, 20000);
+    function cleanup(){ done=true; delete window[cb]; s.remove(); clearTimeout(t); }
+    window[cb] = function(data){ if(!done){ cleanup(); resolve(data); } };
+    s.onerror = function(){ if(!done){ cleanup(); reject(new Error('network')); } };
+    const q = Object.keys(params).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
+    s.src = GAS_URL + '?callback=' + cb + '&' + q;
+    document.body.appendChild(s);
+  });
+}
+
+function showErr(msg){
+  document.getElementById('loading').classList.add('hide');
+  document.getElementById('form').classList.add('hide');
+  const e = document.getElementById('errBox');
+  e.textContent = msg; e.classList.remove('hide');
+  document.getElementById('evBadge').textContent = '—';
+}
+
+async function load(){
+  if(!EVENT_ID){ showErr('リンクが正しくありません。メールのリンクから開いてください。'); return; }
+  if(GAS_URL.indexOf('ここに') === 0){ showErr('セットアップ未完了：GAS_URL が未設定です。'); return; }
+  try{
+    const r = await jsonp({action:'event', event:EVENT_ID});
+    if(!r.ok){ showErr(r.error || 'イベントを取得できませんでした。'); return; }
+    const ev = r.event;
+    FACILITY = ev.facility || '';
+    document.getElementById('evTitle').textContent = ev.title || '安否確認';
+    document.getElementById('evMsg').textContent = ev.message || '';
+    const badge = document.getElementById('evBadge');
+    if(ev.type === '訓練'){ badge.textContent = 'これは訓練です'; badge.classList.add('drill'); }
+    else { badge.textContent = ev.facility || '安否確認'; }
+
+    if(ev.status !== 'active'){
+      showErr('この安否確認は終了しています。'); return;
+    }
+
+    const nsel = document.getElementById('name');
+    (r.roster || []).forEach(function(n){
+      const o = document.createElement('option'); o.value=n; o.textContent=n; nsel.appendChild(o);
+    });
+
+    document.getElementById('loading').classList.add('hide');
+    document.getElementById('form').classList.remove('hide');
+  }catch(e){
+    showErr('通信に失敗しました。電波の良い場所で再度お試しください。');
+  }
+}
+
+function pick(btn){
+  const g = btn.dataset.g;
+  document.querySelectorAll('.pick[data-g="'+g+'"]').forEach(function(b){
+    b.classList.remove('sel','safe');
+  });
+  btn.classList.add('sel');
+  if(g==='status' && btn.dataset.v==='無事') btn.classList.add('safe');
+  sel[g] = btn.dataset.v;
+}
+
+function toggleGps(){
+  const el = document.getElementById('gpsToggle');
+  const st = document.getElementById('gpsState');
+  if(gps.on){ gps={on:false,lat:'',lng:''}; el.classList.remove('on'); st.textContent=''; return; }
+  if(!navigator.geolocation){ st.textContent='この端末では現在地を取得できません。'; return; }
+  st.textContent = '現在地を取得中…';
+  navigator.geolocation.getCurrentPosition(function(pos){
+    gps = {on:true, lat:pos.coords.latitude.toFixed(6), lng:pos.coords.longitude.toFixed(6)};
+    el.classList.add('on');
+    st.textContent = '現在地を取得しました（送信時に園長へ共有）';
+  }, function(){
+    st.textContent = '現在地を取得できませんでした（位置情報の許可をご確認ください）。';
+  }, {enableHighAccuracy:true, timeout:10000});
+}
+
+async function submit(){
+  const name = document.getElementById('name').value;
+  if(!name){ alert('お名前を選択してください'); return; }
+  if(!sel.status){ alert('あなたの状況を選択してください'); return; }
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = '送信中…';
+  try{
+    const r = await jsonp({
+      action:'submit', event:EVENT_ID, facility:FACILITY, name:name,
+      status:sel.status, canWork:sel.canWork,
+      lat:gps.lat, lng:gps.lng,
+      comment:document.getElementById('comment').value || ''
+    });
+    if(!r.ok){ alert(r.error||'送信に失敗しました'); btn.disabled=false; btn.textContent='この内容で送信する'; return; }
+    document.getElementById('form').classList.add('hide');
+    document.getElementById('done').classList.remove('hide');
+    window.scrollTo(0,0);
+  }catch(e){
+    alert('通信に失敗しました。もう一度お試しください。');
+    btn.disabled=false; btn.textContent='この内容で送信する';
+  }
+}
+
+function editAgain(){
+  document.getElementById('done').classList.add('hide');
+  document.getElementById('form').classList.remove('hide');
+  const btn = document.getElementById('submitBtn');
+  btn.disabled=false; btn.textContent='この内容で更新する';
+  window.scrollTo(0,0);
+}
+
+load();
+</script>
+</body>
+</html>

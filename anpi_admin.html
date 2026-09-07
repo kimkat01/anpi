@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>危機管理対応状況｜管理（園長用）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#2b2a28; --ink-soft:#6f6a62; --line:#e7e2d9; --paper:#f4f1ec; --card:#fff;
+  --red:#d0574f; --red-d:#b8433c; --red-bg:#f7ddd8; --red-ink:#8f322c;
+  --ok:#2e9384; --ok-bg:#d9efe9; --ok-ink:#1b5c53;
+  --warn:#c99a1f; --warn-bg:#f4ead0; --warn-ink:#856019;
+  --off:#b8b0a3; --off-bg:#efece5; --off-ink:#8c8477;
+  --shadow:0 2px 4px rgba(0,0,0,.08),0 10px 26px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",YuGothic,"Noto Sans JP",sans-serif;
+  color:var(--ink);background:var(--paper);line-height:1.6;-webkit-font-smoothing:antialiased;}
+.round{font-family:"M PLUS Rounded 1c",sans-serif;}
+.wrap{max-width:640px;margin:0 auto;}
+
+.hd{background:var(--red);color:#fff;padding:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.hd .k{font-size:12px;font-weight:800;letter-spacing:.06em;opacity:.9;}
+.hd .t{font-size:19px;font-weight:800;margin-top:2px;}
+.hd .fac{font-size:12px;font-weight:800;background:rgba(255,255,255,.22);padding:6px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;}
+
+.body{padding:16px;}
+.card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-bottom:16px;}
+.card h2{font-size:15px;font-weight:800;margin:0 0 12px;display:flex;align-items:center;gap:8px;}
+.card h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--red);}
+label{display:block;font-size:13px;font-weight:700;color:var(--ink-soft);margin:12px 0 6px;}
+input[type=text],textarea,select{width:100%;font-size:15px;padding:11px;border:2px solid var(--line);border-radius:11px;font-family:inherit;color:var(--ink);background:#fff;}
+textarea{min-height:76px;resize:vertical;}
+.seg{display:flex;gap:8px;}
+.seg button{flex:1;border:2px solid var(--line);background:#fff;border-radius:11px;padding:12px;font-weight:800;font-size:14px;color:var(--ink);cursor:pointer;font-family:inherit;}
+.seg button.sel{border-color:var(--red);background:var(--red-bg);color:var(--red-ink);}
+.seg button.sel.drill{border-color:var(--warn);background:var(--warn-bg);color:var(--warn-ink);}
+.btn{width:100%;background:var(--red);color:#fff;border:0;border-radius:13px;padding:15px;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;box-shadow:var(--shadow);margin-top:16px;}
+.btn:active{transform:scale(.99)} .btn:disabled{opacity:.5}
+.btn.ghost{background:#fff;color:var(--red);border:2px solid var(--red);box-shadow:none;}
+.btn.gray{background:#fff;color:var(--off-ink);border:2px solid var(--line);box-shadow:none;}
+
+.status-line{display:flex;align-items:center;gap:10px;font-weight:800;margin-bottom:4px;}
+.pill{font-size:12px;font-weight:800;padding:4px 12px;border-radius:999px;}
+.pill.on{background:var(--red-bg);color:var(--red-ink);}
+.pill.off{background:var(--off-bg);color:var(--off-ink);}
+.pill.drill{background:var(--warn-bg);color:var(--warn-ink);}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:4px 0 14px;}
+.stat{background:var(--paper);border-radius:12px;padding:11px 6px;text-align:center;}
+.stat .n{font-size:24px;font-weight:800;line-height:1;} .stat .l{font-size:11px;color:var(--ink-soft);margin-top:5px;}
+.stat.safe .n{color:var(--ok)} .stat.help .n{color:var(--red)} .stat.no .n{color:var(--off-ink)} .stat.work .n{color:var(--ink)}
+
+.progress{height:10px;background:var(--off-bg);border-radius:999px;overflow:hidden;margin-bottom:6px;}
+.progress i{display:block;height:100%;background:var(--ok);width:0;transition:width .4s;}
+.prog-lbl{font-size:12px;color:var(--ink-soft);margin-bottom:14px;}
+
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top;}
+th{font-size:11px;color:var(--ink-soft);font-weight:700;}
+.tag{font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+.tag.safe{background:var(--ok-bg);color:var(--ok-ink);} .tag.help{background:var(--red-bg);color:var(--red-ink);}
+.tag.no{background:var(--off-bg);color:var(--off-ink);} .tag.work{background:#e3e4f6;color:#3c4590;}
+.maplink{color:var(--red);text-decoration:none;font-weight:700;font-size:12px;white-space:nowrap;}
+.cmt{color:var(--ink-soft);font-size:12px;}
+.muted{color:var(--ink-soft);font-size:13px;text-align:center;padding:18px;}
+
+/* PWゲート */
+.scrim{position:fixed;inset:0;background:rgba(20,22,40,.42);display:grid;place-items:center;padding:22px;z-index:50;}
+.gate{background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:26px 22px;max-width:340px;width:100%;text-align:center;}
+.gate .lock{width:56px;height:56px;border-radius:50%;background:var(--red-bg);display:grid;place-items:center;margin:0 auto 14px;}
+.gate .lock svg{width:28px;height:28px;stroke:var(--red);fill:none;stroke-width:2.2;}
+.gate h3{margin:0 0 4px;font-size:18px;font-weight:800;}
+.gate p{margin:0 0 16px;font-size:13px;color:var(--ink-soft);}
+.gate input{text-align:center;font-size:18px;letter-spacing:.1em;}
+.gate .err{color:var(--red-ink);font-size:12px;font-weight:700;margin-top:8px;min-height:16px;}
+.hide{display:none!important;}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2b2a28;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;z-index:60;box-shadow:var(--shadow);}
+</style>
+</head>
+<body>
+
+<!-- PWゲート -->
+<div class="scrim" id="gate">
+  <div class="gate">
+    <div class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+    <h3 class="round">園長用ページ</h3>
+    <p>パスワードを入力してください</p>
+    <input type="password" id="pw" onkeydown="if(event.key==='Enter')unlock()" placeholder="パスワード">
+    <div class="err" id="gateErr"></div>
+    <button class="btn" style="margin-top:14px" onclick="unlock()">開く</button>
+  </div>
+</div>
+
+<div class="wrap hide" id="app">
+  <div class="hd">
+    <div>
+      <div class="k round">危機管理対応状況｜管理</div>
+      <div class="t round">園長用ページ</div>
+    </div>
+    <div class="fac" id="facBtn" onclick="chooseFacility()">園を選択 ▾</div>
+  </div>
+
+  <div class="body">
+    <!-- 現在の状況 -->
+    <div class="card">
+      <div class="status-line">
+        <span>現在の状況</span>
+        <span class="pill off" id="statePill">未実施</span>
+      </div>
+      <div id="stateDetail" class="muted" style="text-align:left;padding:6px 0 0">安否確認は実施していません。</div>
+    </div>
+
+    <!-- 発信 -->
+    <div class="card" id="sendCard">
+      <h2><span class="dot"></span>安否確認を配信する</h2>
+      <label>種別</label>
+      <div class="seg" id="typeSeg">
+        <button data-v="訓練" class="sel drill" onclick="pickType(this)">訓練</button>
+        <button data-v="実災害" onclick="pickType(this)">実災害</button>
+      </div>
+      <label>タイトル</label>
+      <input type="text" id="title" placeholder="例）地震発生に伴う安否確認">
+      <label>本文（メールに入ります）</label>
+      <textarea id="message">ただいま安否確認を実施します。下のリンクからご自身の状況を回答してください。</textarea>
+      <button class="btn" id="sendBtn" onclick="send()">この内容で配信する</button>
+      <div class="muted" id="sendNote" style="padding-top:12px">名簿(roster)のメールアドレス宛に送信します。</div>
+    </div>
+
+    <!-- 集計 -->
+    <div class="card hide" id="sumCard">
+      <h2><span class="dot"></span>回答状況
+        <span style="margin-left:auto;font-size:12px;font-weight:700;color:var(--ink-soft);cursor:pointer" onclick="refresh()">↻ 更新</span>
+      </h2>
+      <div class="progress"><i id="progBar"></i></div>
+      <div class="prog-lbl" id="progLbl">—</div>
+      <div class="stats">
+        <div class="stat safe"><div class="n" id="cSafe">0</div><div class="l">無事</div></div>
+        <div class="stat help"><div class="n" id="cHelp">0</div><div class="l">要支援</div></div>
+        <div class="stat no"><div class="n" id="cNo">0</div><div class="l">未回答</div></div>
+        <div class="stat work"><div class="n" id="cWork">0</div><div class="l">出勤可</div></div>
+      </div>
+      <table>
+        <thead><tr><th>氏名</th><th>状況</th><th>出勤</th><th>現在地</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <button class="btn ghost" style="margin-top:16px" onclick="copyLink()">回答リンクをコピー</button>
+      <button class="btn gray" onclick="closeEvent()">安否確認を終了する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== 設定：GASウェブアプリの /exec URL を貼る ===== */
+const GAS_URL = 'ここにGASウェブアプリの/execのURLを貼る';
+/* ================================================= */
+
+let PW = '';
+let FACILITY = '';
+let TYPE = '訓練';
+let CUR_EVENT = null;   // active event id
+let CUR_LINK = '';
+let facilities = [];
+let timer = null;
+
+function jsonp(params){
+  return new Promise(function(resolve, reject){
+    const cb = 'cb_' + Math.random().toString(36).slice(2);
+    const s = document.createElement('script');
+    let done=false;
+    const t = setTimeout(function(){ if(!done){cleanup();reject(new Error('timeout'));} }, 25000);
+    function cleanup(){ done=true; delete window[cb]; s.remove(); clearTimeout(t); }
+    window[cb] = function(d){ if(!done){cleanup();resolve(d);} };
+    s.onerror = function(){ if(!done){cleanup();reject(new Error('network'));} };
+    const q = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+    s.src = GAS_URL + '?callback=' + cb + '&' + q;
+    document.body.appendChild(s);
+  });
+}
+function toast(m){ const d=document.createElement('div'); d.className='toast'; d.textContent=m; document.body.appendChild(d); setTimeout(function(){d.remove();},2200); }
+
+/* ---- PWゲート ---- */
+function unlock(){
+  const v = document.getElementById('pw').value;
+  if(!v){ document.getElementById('gateErr').textContent='パスワードを入力してください'; return; }
+  PW = v;
+  sessionStorage.setItem('anpiAdminPw', v);
+  document.getElementById('gate').classList.add('hide');
+  document.getElementById('app').classList.remove('hide');
+  initFacilities();
+}
+(function(){
+  const saved = sessionStorage.getItem('anpiAdminPw');
+  if(saved){ PW=saved; document.getElementById('gate').classList.add('hide'); document.getElementById('app').classList.remove('hide'); initFacilities(); }
+})();
+
+/* ---- 園選択 ---- */
+async function initFacilities(){
+  if(GAS_URL.indexOf('ここに')===0){ toast('GAS_URL が未設定です'); return; }
+  try{
+    const r = await jsonp({action:'facilities'});
+    facilities = (r.ok && r.facilities) ? r.facilities : [];
+    const saved = sessionStorage.getItem('anpiFacility');
+    if(saved && facilities.indexOf(saved)>=0){ setFacility(saved); }
+    else if(facilities.length===1){ setFacility(facilities[0]); }
+    else { chooseFacility(); }
+  }catch(e){ toast('名簿を取得できませんでした'); }
+}
+function chooseFacility(){
+  if(!facilities.length){ toast('名簿(roster)に園が登録されていません'); return; }
+  const msg = '園を選んでください：\n' + facilities.map(function(f,i){return (i+1)+') '+f;}).join('\n');
+  const a = prompt(msg + '\n\n番号を入力');
+  const idx = parseInt(a,10)-1;
+  if(idx>=0 && idx<facilities.length){ setFacility(facilities[idx]); }
+}
+function setFacility(f){
+  FACILITY = f;
+  sessionStorage.setItem('anpiFacility', f);
+  document.getElementById('facBtn').textContent = f + ' ▾';
+  refresh();
+}
+
+/* ---- 種別 ---- */
+function pickType(btn){
+  document.querySelectorAll('#typeSeg button').forEach(function(b){b.classList.remove('sel','drill');});
+  btn.classList.add('sel');
+  if(btn.dataset.v==='訓練') btn.classList.add('drill');
+  TYPE = btn.dataset.v;
+}
+
+/* ---- 配信 ---- */
+async function send(){
+  if(!FACILITY){ chooseFacility(); return; }
+  const label = (TYPE==='実災害') ? '【実災害】として全員にメール配信します。よろしいですか？' : '【訓練】として配信します。よろしいですか？';
+  if(!confirm(label)) return;
+  const btn = document.getElementById('sendBtn');
+  btn.disabled=true; btn.textContent='配信中…';
+  try{
+    const r = await jsonp({
+      action:'create', pw:PW, facility:FACILITY, type:TYPE,
+      title:document.getElementById('title').value || '',
+      message:document.getElementById('message').value || '',
+      createdBy:'園長'
+    });
+    if(!r.ok){ toast(r.error||'配信に失敗しました'); btn.disabled=false; btn.textContent='この内容で配信する'; return; }
+    CUR_EVENT = r.eventId; CUR_LINK = r.link;
+    toast(r.sent + '名に送信しました' + (r.failed && r.failed.length ? '（失敗'+r.failed.length+'名）' : ''));
+    btn.disabled=false; btn.textContent='この内容で配信する';
+    refresh();
+  }catch(e){
+    toast('通信に失敗しました'); btn.disabled=false; btn.textContent='この内容で配信する';
+  }
+}
+
+/* ---- 集計 ---- */
+async function refresh(){
+  if(!FACILITY) return;
+  try{
+    // まず実施中イベントを特定
+    const a = await jsonp({action:'active', facility:FACILITY});
+    if(!a.ok || !a.active){ renderIdle(); return; }
+    CUR_EVENT = a.event.eventId;
+    const s = await jsonp({action:'summary', event:CUR_EVENT});
+    if(!s.ok){ renderIdle(); return; }
+    CUR_LINK = GAS_URL; // fallback
+    renderActive(s);
+  }catch(e){ /* 通信失敗時は現状維持 */ }
+}
+
+function renderIdle(){
+  CUR_EVENT=null;
+  document.getElementById('statePill').className='pill off';
+  document.getElementById('statePill').textContent='未実施';
+  document.getElementById('stateDetail').textContent='安否確認は実施していません。';
+  document.getElementById('sumCard').classList.add('hide');
+  document.getElementById('sendCard').classList.remove('hide');
+  if(timer){ clearInterval(timer); timer=null; }
+}
+
+function renderActive(s){
+  const ev = s.event, c = s.counts;
+  const pill = document.getElementById('statePill');
+  if(ev.type==='訓練'){ pill.className='pill drill'; pill.textContent='実施中（訓練）'; }
+  else { pill.className='pill on'; pill.textContent='実施中'; }
+  document.getElementById('stateDetail').innerHTML =
+    '<b>'+(ev.title||'安否確認')+'</b><br><span style="color:var(--ink-soft);font-size:12px">開始 '+(ev.createdAt||'')+'</span>';
+
+  document.getElementById('sendCard').classList.add('hide');
+  document.getElementById('sumCard').classList.remove('hide');
+
+  document.getElementById('cSafe').textContent = c.safe;
+  document.getElementById('cHelp').textContent = c.needHelp;
+  document.getElementById('cNo').textContent   = c.unresponded;
+  document.getElementById('cWork').textContent = c.canWork;
+
+  const pct = c.total ? Math.round(c.responded/c.total*100) : 0;
+  document.getElementById('progBar').style.width = pct + '%';
+  document.getElementById('progLbl').textContent = '回答 ' + c.responded + ' / ' + c.total + ' 名（' + pct + '%）';
+
+  const tb = document.getElementById('tbody'); tb.innerHTML='';
+  s.people.forEach(function(p){
+    const tr = document.createElement('tr');
+    let st = '<span class="tag no">未回答</span>';
+    if(p.responded && p.status==='無事') st = '<span class="tag safe">無事</span>';
+    else if(p.responded && p.status==='要支援') st = '<span class="tag help">要支援</span>';
+    else if(p.responded) st = '<span class="tag safe">回答済</span>';
+    let wk = '';
+    if(p.canWork==='出勤可') wk='<span class="tag work">出勤可</span>';
+    else if(p.canWork==='出勤不可') wk='<span style="color:var(--off-ink);font-size:12px">不可</span>';
+    else if(p.canWork==='未定') wk='<span style="color:var(--off-ink);font-size:12px">未定</span>';
+    let loc = '—';
+    if(p.lat && p.lng) loc = '<a class="maplink" target="_blank" href="https://www.google.com/maps?q='+p.lat+','+p.lng+'">地図で見る</a>';
+    const cmt = p.comment ? '<div class="cmt">'+escapeHtml(p.comment)+'</div>' : '';
+    tr.innerHTML = '<td><b>'+escapeHtml(p.name)+'</b>'+cmt+'</td><td>'+st+'</td><td>'+wk+'</td><td>'+loc+'</td>';
+    tb.appendChild(tr);
+  });
+
+  if(!timer){ timer = setInterval(refresh, 30000); } // 30秒ごとに自動更新
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];}); }
+
+function copyLink(){
+  if(!CUR_EVENT){ toast('実施中の安否確認がありません'); return; }
+  const link = ANPI_PAGE() + '?event=' + CUR_EVENT;
+  navigator.clipboard.writeText(link).then(function(){ toast('回答リンクをコピーしました'); },
+    function(){ prompt('コピーできませんでした。手動でコピーしてください：', link); });
+}
+/* 回答ページURL：同じ場所に anpi.html を置く前提で自動生成。別URLなら書き換え可 */
+function ANPI_PAGE(){
+  // このページ(anpi_admin.html)と同じフォルダの anpi.html を指す
+  return location.href.replace(/anpi_admin\.html.*$/, 'anpi.html').replace(/[?#].*$/,'');
+}
+
+async function closeEvent(){
+  if(!CUR_EVENT){ toast('実施中の安否確認がありません'); return; }
+  if(!confirm('この安否確認を終了します。職員の回答画面も締め切られます。よろしいですか？')) return;
+  try{
+    const r = await jsonp({action:'close', pw:PW, event:CUR_EVENT});
+    if(!r.ok){ toast(r.error||'終了に失敗しました'); return; }
+    toast('安否確認を終了しました');
+    renderIdle();
+  }catch(e){ toast('通信に失敗しました'); }
+}
+</script>
+</body>
+</html>
