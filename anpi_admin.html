@@ -84,19 +84,7 @@ th{font-size:11px;color:var(--ink-soft);font-weight:700;}
 </head>
 <body>
 
-<!-- PWゲート -->
-<div class="scrim" id="gate">
-  <div class="gate">
-    <div class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
-    <h3 class="round">園長用ページ</h3>
-    <p>パスワードを入力してください</p>
-    <input type="password" id="pw" onkeydown="if(event.key==='Enter')unlock()" placeholder="パスワード">
-    <div class="err" id="gateErr"></div>
-    <button class="btn" style="margin-top:14px" onclick="unlock()">開く</button>
-  </div>
-</div>
-
-<div class="wrap hide" id="app">
+<div class="wrap" id="app">
   <div class="hd">
     <div>
       <div class="k round">危機管理対応状況｜管理</div>
@@ -159,7 +147,7 @@ th{font-size:11px;color:var(--ink-soft);font-weight:700;}
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbyr8b-l2TlgUMWOopYqfYmIp5pgs1ftTLpsXWYVLl_-VFJiMr_haxk0L3LcraWalHOvGg/exec';
 /* ================================================= */
 
-let PW = '';
+let PW = 'shiodome8000';   /* ← GASのADMIN_PWと同じ値。変更している場合はここだけ書き換える */
 let FACILITY = '';
 let TYPE = '訓練';
 let CUR_EVENT = null;   // active event id
@@ -183,19 +171,10 @@ function jsonp(params){
 }
 function toast(m){ const d=document.createElement('div'); d.className='toast'; d.textContent=m; document.body.appendChild(d); setTimeout(function(){d.remove();},2200); }
 
-/* ---- PWゲート ---- */
-function unlock(){
-  const v = document.getElementById('pw').value;
-  if(!v){ document.getElementById('gateErr').textContent='パスワードを入力してください'; return; }
-  PW = v;
-  sessionStorage.setItem('anpiAdminPw', v);
-  document.getElementById('gate').classList.add('hide');
+/* ---- パスワード入力は廃止。開いたらそのまま管理画面を表示 ---- */
+(function(){
   document.getElementById('app').classList.remove('hide');
   initFacilities();
-}
-(function(){
-  const saved = sessionStorage.getItem('anpiAdminPw');
-  if(saved){ PW=saved; document.getElementById('gate').classList.add('hide'); document.getElementById('app').classList.remove('hide'); initFacilities(); }
 })();
 
 /* ---- 園選択 ---- */
