@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<script src="https://kimkat01.github.io/staff-dashboard/gardens.js"></script>
 <style>
 :root{
   --ink:#2b2a28; --ink-soft:#6f6a62; --line:#e7e2d9; --paper:#f4f1ec; --card:#fff;
@@ -64,6 +65,21 @@ textarea{width:100%;font-size:15px;padding:12px;border:2px solid var(--line);bor
 .big-ic svg{width:40px;height:40px;stroke:var(--ok);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;}
 .err{background:#fff;border-radius:14px;padding:22px;box-shadow:var(--shadow);text-align:center;color:var(--red-ink);font-weight:700;}
 .hide{display:none!important;}
+/* 共通Homeボタン（右上・家アイコン＋Home） */
+.hd{position:relative;}
+.homebtn{position:absolute;top:14px;right:14px;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.2);color:#fff;border:0;
+  border-radius:999px;padding:6px 12px 6px 10px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;}
+.homebtn svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+/* 未実施／園選択 */
+.idle{background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:26px 20px;text-align:center;}
+.idle .big-ic{background:#eef1f0;}
+.idle .big-ic svg{stroke:#7d8a86;}
+.idle .tt{font-size:17px;font-weight:800;}
+.idle .ds{font-size:13px;color:var(--ink-soft);margin-top:8px;}
+.ghost{width:100%;margin-top:18px;background:#fff;color:var(--red);border:2px solid var(--red);border-radius:14px;padding:13px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer;}
+.facbtn{display:block;width:100%;text-align:left;background:#fff;border:2px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:8px;
+  font-size:15px;font-weight:700;font-family:inherit;color:var(--ink);cursor:pointer;}
+.facbtn:active{border-color:var(--red);background:var(--red-bg);}
 </style>
 </head>
 <body>
@@ -72,12 +88,29 @@ textarea{width:100%;font-size:15px;padding:12px;border:2px solid var(--line);bor
     <div class="k round">危機管理対応状況</div>
     <div class="t round" id="evTitle">安否確認</div>
     <span class="badge" id="evBadge">読み込み中…</span>
+    <button class="homebtn hide" id="homeBtn" onclick="goHomeBack()"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Home</button>
   </div>
 
   <div class="body">
     <!-- 読み込み中/エラー -->
     <div id="loading" class="note">読み込んでいます…</div>
     <div id="errBox" class="err hide"></div>
+
+    <!-- 実施中の安否確認がないとき -->
+    <div id="idleBox" class="idle hide">
+      <div class="big-ic"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5.2c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M8.7 12.2l2.2 2.2 4.3-4.3"/></svg></div>
+      <div class="tt round">現在、安否確認は実施していません</div>
+      <div class="ds" id="idleFac"></div>
+      <div class="ds">災害時や訓練のときは、園長が開始するとここから回答できます。</div>
+      <button class="ghost" onclick="load()">最新の状態に更新する</button>
+      <button class="ghost hide" id="reselBtn" onclick="showFacilityPicker()">園を選び直す</button>
+    </div>
+
+    <!-- 園を選ぶ（園名なしのリンクで開いたとき） -->
+    <div id="facBox" class="hide">
+      <div class="msg">あなたの園を選んでください。</div>
+      <div id="facList"></div>
+    </div>
 
     <!-- 入力フォーム -->
     <div id="form" class="hide">
@@ -140,8 +173,28 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbyr8b-l2TlgUMWOopYqfYmI
 
 const sel = {status:'', canWork:''};
 let gps = {on:false, lat:'', lng:''};
-let EVENT_ID = new URLSearchParams(location.search).get('event') || '';
+const QS = new URLSearchParams(location.search);
+let EVENT_ID = QS.get('event') || '';
 let FACILITY = '';
+const PRESET_NAME = (QS.get('name') || '').trim();   // 職員ダッシュボードのログイン名（自動選択用）
+const HOME_URL = QS.get('home') || '';                // 職員ダッシュボードへ戻るURL
+const FAC_KEY = 'anpiStaffFacility';
+
+/* ?garden=（園キー or 日本語の園名）→ 正式な園名 */
+function gardenParam(){
+  const v = (QS.get('garden') || '').trim();
+  if(!v) return '';
+  if(typeof findGarden === 'function'){ const g = findGarden(v); if(g) return g.name; }
+  return v;
+}
+function goHomeBack(){ if(HOME_URL) location.href = HOME_URL; }
+function normName(t){
+  return String(t||'').replace(/[\s　]/g,'')
+    .replace(/髙/g,'高').replace(/﨑/g,'崎').replace(/[邉邊]/g,'辺').replace(/德/g,'徳').replace(/濵/g,'浜');
+}
+function hideAll(){
+  ['loading','errBox','form','done','idleBox','facBox'].forEach(function(id){ document.getElementById(id).classList.add('hide'); });
+}
 
 /* JSONP */
 function jsonp(params){
@@ -160,37 +213,115 @@ function jsonp(params){
 }
 
 function showErr(msg){
-  document.getElementById('loading').classList.add('hide');
-  document.getElementById('form').classList.add('hide');
+  hideAll();
   const e = document.getElementById('errBox');
   e.textContent = msg; e.classList.remove('hide');
   document.getElementById('evBadge').textContent = '—';
 }
 
 async function load(){
-  if(!EVENT_ID){ showErr('リンクが正しくありません。メールのリンクから開いてください。'); return; }
   if(GAS_URL.indexOf('ここに') === 0){ showErr('セットアップ未完了：GAS_URL が未設定です。'); return; }
+  hideAll();
+  document.getElementById('loading').classList.remove('hide');
+  document.getElementById('evBadge').textContent = '読み込み中…';
+
+  /* メールのリンク（?event=）で開いたときは従来どおり */
+  if(QS.get('event')){ EVENT_ID = QS.get('event'); return loadEvent(); }
+
+  /* ダッシュボードから（?garden=）、または前回選んだ園 */
+  const fromUrl = gardenParam();
+  let fac = fromUrl;
+  if(!fac){ try{ fac = localStorage.getItem(FAC_KEY) || ''; }catch(e){} }
+  if(!fac){ return showFacilityPicker(); }
+  document.getElementById('reselBtn').classList.toggle('hide', !!fromUrl);
+  return loadByFacility(fac);
+}
+
+/* その園で実施中の安否確認を探す */
+async function loadByFacility(fac){
+  FACILITY = fac;
+  try{
+    const a = await jsonp({action:'active', facility:fac});
+    if(a.ok && a.active && a.event && a.event.eventId){
+      EVENT_ID = a.event.eventId;
+      return loadEvent();
+    }
+    showIdle(fac);
+  }catch(e){
+    showErr('通信に失敗しました。電波の良い場所で再度お試しください。');
+  }
+}
+
+function showIdle(fac){
+  hideAll();
+  document.getElementById('evTitle').textContent = '安否確認';
+  document.getElementById('evBadge').textContent = fac || '未実施';
+  document.getElementById('idleFac').textContent = fac ? '（' + fac + '）' : '';
+  document.getElementById('idleBox').classList.remove('hide');
+}
+
+async function showFacilityPicker(){
+  hideAll();
+  document.getElementById('loading').classList.remove('hide');
+  document.getElementById('evBadge').textContent = '園の選択';
+  try{
+    const r = await jsonp({action:'facilities'});
+    const list = (r.ok && r.facilities) ? r.facilities : [];
+    if(!list.length){ showErr('園の名簿が登録されていません。園長にお知らせください。'); return; }
+    const box = document.getElementById('facList');
+    box.innerHTML = '';
+    list.forEach(function(f){
+      const b = document.createElement('button');
+      b.className = 'facbtn'; b.textContent = f;
+      b.onclick = function(){
+        try{ localStorage.setItem(FAC_KEY, f); }catch(e){}
+        document.getElementById('reselBtn').classList.remove('hide');
+        hideAll(); document.getElementById('loading').classList.remove('hide');
+        loadByFacility(f);
+      };
+      box.appendChild(b);
+    });
+    hideAll();
+    document.getElementById('facBox').classList.remove('hide');
+  }catch(e){
+    showErr('通信に失敗しました。電波の良い場所で再度お試しください。');
+  }
+}
+
+async function loadEvent(){
+  if(!EVENT_ID){ showErr('リンクが正しくありません。メールのリンクから開いてください。'); return; }
   try{
     const r = await jsonp({action:'event', event:EVENT_ID});
     if(!r.ok){ showErr(r.error || 'イベントを取得できませんでした。'); return; }
     const ev = r.event;
-    FACILITY = ev.facility || '';
+    FACILITY = ev.facility || FACILITY || '';
     document.getElementById('evTitle').textContent = ev.title || '安否確認';
     document.getElementById('evMsg').textContent = ev.message || '';
     const badge = document.getElementById('evBadge');
+    badge.classList.remove('drill');
     if(ev.type === '訓練'){ badge.textContent = 'これは訓練です'; badge.classList.add('drill'); }
     else { badge.textContent = ev.facility || '安否確認'; }
 
     if(ev.status !== 'active'){
-      showErr('この安否確認は終了しています。'); return;
+      if(QS.get('event')){ showErr('この安否確認は終了しています。'); }
+      else { showIdle(FACILITY); }
+      return;
     }
 
     const nsel = document.getElementById('name');
+    nsel.innerHTML = '<option value="">選択してください</option>';
     (r.roster || []).forEach(function(n){
       const o = document.createElement('option'); o.value=n; o.textContent=n; nsel.appendChild(o);
     });
+    /* 職員ダッシュボードのログイン名を自動で選ぶ（表記ゆれは吸収） */
+    if(PRESET_NAME){
+      const target = normName(PRESET_NAME);
+      for(let i=0;i<nsel.options.length;i++){
+        if(nsel.options[i].value && normName(nsel.options[i].value) === target){ nsel.selectedIndex = i; break; }
+      }
+    }
 
-    document.getElementById('loading').classList.add('hide');
+    hideAll();
     document.getElementById('form').classList.remove('hide');
   }catch(e){
     showErr('通信に失敗しました。電波の良い場所で再度お試しください。');
@@ -253,6 +384,7 @@ function editAgain(){
   window.scrollTo(0,0);
 }
 
+if(HOME_URL){ document.getElementById('homeBtn').classList.remove('hide'); }
 load();
 </script>
 </body>
